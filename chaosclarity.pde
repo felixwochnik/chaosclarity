@@ -13,18 +13,18 @@ float val;
 float bg;
 color lineCol = 1;
 float lineDistance = 100;
-int svgNumber = 2;
+int svgNumber = 10;
 
 
 
-PShape[] svgs = new PShape[svgNumber];
-PShape[] symbols = new PShape[svgNumber];
+PImage[] cages = new PImage[svgNumber];
+PImage[] fills = new PImage[svgNumber];
+PImage[] symbols = new PImage[svgNumber];
 
 void setup() {
-  fullScreen(P2D,2);
+  fullScreen(P2D,1);
+  smooth();
   //size(500, 500, P2D);
-
-  //surface.setResizable(true);
   
   // ARDUINO INTEGRATION
   final String portName = Serial.list()[2]; //change the 0 to a 1 or 2 etc. to match your port
@@ -32,39 +32,40 @@ void setup() {
   myPort.bufferUntil('\n');  
   
   frameRate(30);
-  ps = new ParticleSystem(new PVector(0,0));
+  ps = new ParticleSystem(new PVector(0,0)); // draw particle system in center because of translate, 1st line of draw()
   
-  for (int i = 0; i < svgs.length; i++) {
-    svgs[i] = loadShape("test/svg" + (i + 1) + ".svg");
-    symbols[i] = loadShape("test/svgg" + (i + 1) + ".svg");
-    //svgs[i].disableStyle();
+  //load images
+  for (int i = 0; i < svgNumber; i++) {
+    cages[i] = loadImage("test/cage-" + (i + 1) + ".png");
+    fills[i] = loadImage("test/fill-" + (i + 1) + ".png");
+    symbols[i] = loadImage("test/symbol-" + (i + 1) + ".png");
   }
 }
 
+// arduino magic
 void serialEvent( Serial myPort) {
   val = int(myPort.readString());
-  //redraw = true;
 }
 
 void draw() {
-  //surface.setTitle( str(frameRate) );
-  //translate(width/2, height/2);    // Move coordinate system to center of sketch
+  translate(width/2, height/2); // Move coordinate system to center of sketch
   background(bg);
   
-  // !!!!!WORKING!!!!!!
+  // connect every particle with a line, brightness depends on particle's lifespan
   for (int i = 0; i < ps.particles.size(); i++) {
       for (int j = i + 1;  j < ps.particles.size(); j ++) {
-        // connect every particle with a line, brightness depends on particle's lifespan
-        colorMode(HSB,1);
-        stroke(1, 0, lineCol, (ps.particles.get(i).lifespan / 1.5 ));
-        //stroke(1, 0, 1, 1);
-        strokeWeight(0.5);
+        colorMode(HSB,1); // to use 0-1 color range
+        stroke(1, 0, lineCol, (ps.particles.get(i).lifespan / 2.75 )); // line color
+        strokeWeight(0.5); // line stroke weight
+        
+        // define stuff for better legibility
         float positionXi = ps.particles.get(i).position.x;
         float positionYi = ps.particles.get(i).position.y;
         float positionXj = ps.particles.get(j).position.x;
         float positionYj = ps.particles.get(j).position.y;
         
-        if ( abs((positionXi - positionXj )) < lineDistance && abs((positionYi - positionYj )) < 100 ){ 
+        // draws line between particles
+        if ( abs((positionXi - positionXj )) < lineDistance && abs((positionYi - positionYj )) < lineDistance ){ 
           line(positionXi, positionYi, positionXj, positionYj);
         }
       }
@@ -75,42 +76,52 @@ void draw() {
   
   for (int i = 0; i < ps.particles.size(); i++) {
       // INACTIVE
+      
       // FOR TESTING WITHOUT ARDUINO
       //if ( mousePressed && mouseButton == LEFT ) {
+        
       if ( val < 15 ) {
-        println(bg + " " + val); //print it out in the console
-        ps.particles.get(i).ratio = ps.particles.get(i).ratio1;
-        lineDistance = 100;
-        ps.numberParticles = 250;
+        println("BG:" + bg + " Distance:" + val + " FPS:" + frameRate);
+        ps.particles.get(i).ratio = ps.particles.get(i).ratio1; // change to phase 1 size
+        lineDistance = 100; // draw line if <100px distance
+        ps.numberParticles = ps.initialNumberParticles; // change back to initial number of particles
+        ps.particles.get(i).MAX_CHANGE = 0.01; // change back to initial max_change
+        lineCol = 1; // changes line color from black (on white) to white (on black)
+                
+        //fade BG color to black 
         if (bg >= 0) {
           bg -= 0.1;
         }        
-        lineCol = 1;
       }
       
       // TRIGGERED
-      else {
-        int newPartNumb = 10;
+      else {        
+        println("BG:" + bg + " Distance:" + val + " FPS:" + frameRate + " TRIGGERED"); // DEBUG
+        ps.particles.get(i).ratio = ps.particles.get(i).ratio2; // change to phase 2 size
+        ps.particles.get(i).position = ps.particles.get(i).position2; //change to phase2 spawn position
+        lineCol = 0; // changes line color from white (on black) to black (on white)
         
-        println(bg + " " + val + " TRIGGERED ");
-        ps.particles.get(i).ratio = ps.particles.get(i).ratio2;
+        // how many particles to leave
+        int newPartNumb = 10;
         ps.numberParticles = newPartNumb;
+        
+        // fade BG color to white
         if (bg < 255) {
           bg += 0.1;
         }
-        lineCol = 0;
-        //ps.particles.get(i).showSymbol = true;
-        //lineDistance = 100;
         
         // make sure there are only 10 particles
         if (ps.particles.size() > newPartNumb) {
-          ps.particles.get(i).add = random(0.001, 0.1);
-          //shapeMode(CENTER);
-          //shape(ps.particles.get(i).currentSymbol, ps.particles.get(i).position.x, ps.particles.get(i).position.y, ps.particles.get(i).currentSvg.width/ps.particles.get(i).ratio, ps.particles.get(i).currentSvg.height/ps.particles.get(i).ratio);
+          ps.particles.get(i).add = random(0.01, 0.05);
         }
+        
+        // then do this:
         else {
-          lineDistance = 100000;
-          ps.particles.get(i).showSymbol = true;
+          ps.particles.get(i).MAX_CHANGE = random(0.001, 0.005); // reduce lifespan reduction speed
+          lineDistance = 100000; // connect all symbols
+          ps.particles.get(i).showSymbol = true; // show symbol
+          ps.particles.get(i).hideCage = ps.particles.get(i).hiddenCage; // random: show cage yey, nay?
+          ps.particles.get(i).active = 255; // sets Fill's BG color
         }
       }
     
