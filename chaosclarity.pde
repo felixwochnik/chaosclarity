@@ -32,7 +32,7 @@ PImage[] symbols = new PImage[svgNumber];
 
 
 void setup() {
-  fullScreen(P2D,1);
+  fullScreen(P2D,2);
   smooth();
   noCursor();
   //size(500, 500, P2D);
@@ -133,7 +133,7 @@ void draw() {
       else {
         ps.particles.get(i).opacity = ps.particles.get(i).lifespan*255;
         //println("BG:" + bg + " Distance:" + val + " FPS:" + frameRate + " ratio:" + ps.particles.get(i).ratio + " TRIGGERED"); // DEBUG
-        println(ps.particles.get(i).selectedSvg + " " + frameRate);
+        println(ps.particles.get(0).id + " " + frameRate);
         
           
         lineCol = 0; // changes line color from white (on black) to black (on white)
@@ -162,9 +162,11 @@ void draw() {
         else {
           // select symbols from category 1-5
           /* eigentlich könnte man es so lösen, aber dadurch dass die ArrayList beim löschen geshuffelt wird, ändert sich die Variable i willkürlich */
+          //ps.particles.get(i).selectedCategory = ps.particles.get(i).id;
+          /*
           ps.particles.get(i).currentSymbol = symbols[i];
           ps.particles.get(i).currentCageline = cagelines[i];
-          
+          */
           
           ps.particles.get(i).position = ps.particles.get(i).position2; //change to phase2 spawn position
           ps.particles.get(i).ratio = map(ps.particles.get(i).lifespan, 0, 1, ps.particles.get(i).ratio2 + 1.5, ps.particles.get(i).ratio2);

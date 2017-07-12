@@ -37,16 +37,22 @@ class particle {
   };
   int selectedCategory;
   
+  int rank;
+  int id;
+  String thingy;
+  
 
-  particle() {
+  particle(int a) {
+    id = a;
+    
     acceleration = new PVector(random(-0.25,0.25), random(-0.25,0.25)); // movement speed
     position = new PVector(random(-width/2.1, width/2.1),random(-height/2.1, height/2.1)); //start position phase 1
     position2 = new PVector(random(-width/4, width/4),random(-height/4, height/4)); // start position phase 2, slightly smaller
     //selectedSvg = int(random(svgNumber)); // select Symbol, Cage & Fill
     
-    
-    selectedSvg = categories[selectedCategory];
-    
+    if (id < 5) {
+      selectedSvg = categories[id];
+    }
     currentFill = fills[selectedSvg];
     currentCage = cages[selectedSvg];
     currentCageline = cagelines[selectedSvg];
@@ -65,6 +71,7 @@ class particle {
     active = 0; // initial color of Fill
     opacity = lifespan*255;
   }
+  
 
   void run() {
     update();

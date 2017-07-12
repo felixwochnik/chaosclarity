@@ -12,9 +12,10 @@ class ParticleSystem {
   
 // found it like this, but works
   void addParticle() {        
-    for (int i = 0; particles.size() < numberParticles; i++) {
-      particles.add(new particle());
-
+    for (int i = 0; i < numberParticles; i++) {
+      if (particles.size() < numberParticles) {
+        particles.add(new particle(i));
+      }
     }
   
   }
@@ -28,4 +29,8 @@ class ParticleSystem {
       }
     }
   }
+  
+  
+
+  
 }
