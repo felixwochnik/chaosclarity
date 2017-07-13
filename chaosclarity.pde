@@ -14,6 +14,8 @@ float bg;
 color lineCol = 1;
 float lineDistance = 100;
 int svgNumber = 15;
+int COUNTER;
+boolean phaseTrigger;
 
 
 // import sound
@@ -32,7 +34,7 @@ PImage[] symbols = new PImage[svgNumber];
 
 
 void setup() {
-  fullScreen(P2D,1);
+  fullScreen(P2D,2);
   smooth();
   noCursor();
   //size(500, 500, P2D);
@@ -72,6 +74,9 @@ void serialEvent( Serial myPort) {
 void draw() {
   translate(width/2, height/2); // Move coordinate system to center of sketch
   background(bg);
+  globalCounter();
+  println(COUNTER);
+  
   
   // connect every particle with a line, brightness depends on particle's lifespan
   for (int i = 0; i < ps.particles.size(); i++) {
@@ -99,20 +104,22 @@ void draw() {
   
   for (int i = 0; i < ps.particles.size(); i++) {
       float changeSpeed = 0.05;
+      particle p = ps.particles.get(i);
       // INACTIVE
       // FOR TESTING WITHOUT ARDUINO
       if ( mousePressed && mouseButton == LEFT ) {
       //if ( val < 15 ) {
-        println(" Distance:" + val + " FPS:" + frameRate + "ratio:" + ps.particles.get(i).ratio); // DEBUG
+        println(" Distance:" + val + " FPS:" + frameRate + "ratio:" + p.ratio); // DEBUG
         //ps.particles.get(i).ratio = ps.particles.get(i).ratio1; // change to phase 1 size
+        phaseTrigger = false;
         lineDistance = 100; // draw line if <100px distance
         ps.numberParticles = ps.initialNumberParticles; // change back to initial number of particles
-        ps.particles.get(i).MAX_CHANGE = 0.01; // change back to initial max_change
+        p.MAX_CHANGE = 0.01; // change back to initial max_change
         lineCol = 1; // changes line color from black (on white) to white (on black)
-        ps.particles.get(i).active = 0;
-        ps.particles.get(i).opacity = ps.particles.get(i).lifespan*255;
+        p.active = 0;
+        p.opacity = p.lifespan*255;
         
-        ps.particles.get(i).ratio = map(ps.particles.get(i).lifespan, 0, 1, ps.particles.get(i).ratio1 + 2.5, ps.particles.get(i).ratio1);
+        p.ratio = map(p.lifespan, 0, 1, p.ratio1 + 2.5, p.ratio1);
         
                 
         //fade BG color to black 
@@ -131,9 +138,9 @@ void draw() {
       
       // TRIGGERED
       else {
-        ps.particles.get(i).opacity = ps.particles.get(i).lifespan*255;
+        p.opacity = p.lifespan*255;
         //println("BG:" + bg + " Distance:" + val + " FPS:" + frameRate + " ratio:" + ps.particles.get(i).ratio + " TRIGGERED"); // DEBUG
-        println(ps.particles.get(i).selectedSvg + " " + frameRate);
+        println(p.id + " " + frameRate);
         
           
         lineCol = 0; // changes line color from white (on black) to black (on white)
@@ -148,31 +155,31 @@ void draw() {
         if (bg <= 255) {
           bg += changeSpeed;
         }
-        ps.particles.get(i).active = int(bg); // sets Fill's BG color
+        p.active = int(bg); // sets Fill's BG color
         
         // make sure there are only X particles
+        
         if (ps.particles.size() > newPartNumb) {
-          ps.particles.get(i).add = random(0.01, 0.05);
+          p.add = random(0.01, 0.05);
           
           // change to phase 2 size
-          ps.particles.get(i).ratio += 0.5;
+          p.ratio += 0.5;
         }
         
         // then do this:
         else {
           // select symbols from category 1-5
           /* eigentlich könnte man es so lösen, aber dadurch dass die ArrayList beim löschen geshuffelt wird, ändert sich die Variable i willkürlich */
-          ps.particles.get(i).currentSymbol = symbols[i];
-          ps.particles.get(i).currentCageline = cagelines[i];
+          //ps.particles.get(i).selectedCategory = ps.particles.get(i).id;
           
-          
-          ps.particles.get(i).position = ps.particles.get(i).position2; //change to phase2 spawn position
-          ps.particles.get(i).ratio = map(ps.particles.get(i).lifespan, 0, 1, ps.particles.get(i).ratio2 + 1.5, ps.particles.get(i).ratio2);
+          phaseTrigger = true;
+          p.position = p.position2; //change to phase2 spawn position
+          p.ratio = map(p.lifespan, 0, 1, p.ratio2 + 1, p.ratio2);
           //ps.particles.get(i).opacity = 255;
-          ps.particles.get(i).MAX_CHANGE = random(0.0005, 0.0025); // reduce lifespan reduction speed
+          p.MAX_CHANGE = random(0.0005, 0.0025); // reduce lifespan reduction speed
           lineDistance = 100000; // connect all symbols
-          ps.particles.get(i).showSymbol = true; // show symbol
-          ps.particles.get(i).hideCage = ps.particles.get(i).hiddenCage; // random: show cage yey, nay?
+          p.showSymbol = true; // show symbol
+          p.hideCage = p.hiddenCage; // random: show cage yey, nay?
           
           /*
           if (!soothing.isPlaying()) {
@@ -186,3 +193,15 @@ void draw() {
       }
   }
 }
+
+void globalCounter() {
+  if (COUNTER < ps.particles.size()) {
+      COUNTER++;
+  }
+  else {
+    COUNTER = 0;
+  }
+}
+  
+  
+  

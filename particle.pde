@@ -36,17 +36,33 @@ class particle {
     int(random(13,15)),
   };
   int selectedCategory;
+  String currentName;
+  
+  int rank;
+  int id;
+  boolean alive0 = false;
+  boolean alive1 = false;
+  boolean alive2 = false;
+  boolean alive3 = false;
+  boolean alive4 = false;
   
 
-  particle() {
+  particle(int a, String name) {
+    id = a;
+    currentName = name;
+    
+    
     acceleration = new PVector(random(-0.25,0.25), random(-0.25,0.25)); // movement speed
     position = new PVector(random(-width/2.1, width/2.1),random(-height/2.1, height/2.1)); //start position phase 1
     position2 = new PVector(random(-width/4, width/4),random(-height/4, height/4)); // start position phase 2, slightly smaller
-    //selectedSvg = int(random(svgNumber)); // select Symbol, Cage & Fill
     
     
-    selectedSvg = categories[selectedCategory];
-    
+    if (phaseTrigger == true) {
+      selectedSvg = categories[id];
+    }
+    else {
+      selectedSvg = int(random(svgNumber)); // select Symbol, Cage & Fill
+    }
     currentFill = fills[selectedSvg];
     currentCage = cages[selectedSvg];
     currentCageline = cagelines[selectedSvg];
@@ -55,7 +71,7 @@ class particle {
     lifespan = 0; // initial lifespan
     ratio = 0;
     ratio1 = random(7.5,10); // pahse 1: size relative to image size
-    ratio2 = random(3,5); // phase 2
+    ratio2 = random(3,6); // phase 2
     maxLifespan = random(0.75, 1); // max opacity 
     MAX_CHANGE = 0.01; // used for calculation how much lifespan to add/reduce  
     goUp = true; // determines whether to add or reduce lifespan
@@ -65,6 +81,7 @@ class particle {
     active = 0; // initial color of Fill
     opacity = lifespan*255;
   }
+  
 
   void run() {
     update();
@@ -123,6 +140,8 @@ class particle {
     
   }  
 
+
+  
   // Is the particle still useful?
   boolean isDead() {
     if (lifespan < 0) {
